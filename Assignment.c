@@ -46,14 +46,37 @@
    -> As this precursor is now Biased, being a weighted sum over all precursors, the weight of the delayed neutron should equal the ration of forced probability and natural probability. i.e. w_n(t) = p(t) / Summ(p_i(t)) over all i 
 */
 
-void precursor_sampling(double k_eff, double beta, double lambda, double t, double t_0) {
+double* precursor_sampling(double k_eff, double beta, double lambda, double t, double t_0) {
    double P_f = k_eff * (1.00 - beta);
    double n_bar = 1.00 / (1.00 - P_f);
    double P_bar = 1.00 / TIME_INTERVAL_FOR_FORCED_DECAY;
    double P_i = lambda * exp(-1.00 * lambda * (t - t_0));
    double w_n = P_i / P_bar;
+
+   double arr[] = [P_f, n_bar, P_bar, P_i, w_n];
+   return arr;
 }
+
+
+// -------------------- Precursors Spatial Distribution -------------------- //
+
+/*
+
+   -> When initializing a system, first a criticality calculation is done until the source has converged. This is the steady state neutron distribution and from this distribution the precursor and prompt neutron distribution can be calculated.
+
+   -> As we are assumiung all the precursors to be in the same delay group, 
+      C_0(r) = (beta / lambda_b) neu * Sigma_f * phi(x), where lambda_b is the averaged lambda. As we have a singular delay group, lambda_b = lambda
+
+   -> Therefore, fraction of prompt neutrons at a particular r is given by - 1 / (1 + (beta / lambda) * v * neu * Sigma_f)
+
+*/
+
+void precursor_spatial_distribution(double neu, double v, double sigma_f, double beta, double lambda) {
+   return 1.00 / (1 + (beta / lambda) * v * neu * sigma_f);
+}
+
 
 int main(void) {
    printf("%lf\n", TIME_INTERVAL_FOR_FORCED_DECAY);
+
 }
