@@ -4,6 +4,8 @@
 #include <math.h>
 
 #define TIME_INTERVAL_FOR_FORCED_DECAY 0.1
+#define K_eff 0.25
+#define NUMBER_OF_PRECURSOR_GROUPS 10
 
 // -------------------- Estimating Precursors -------------------- //
 
@@ -34,18 +36,25 @@
    -> As this precursor is now Biased, being a weighted sum over all precursors, the weight of the delayed neutron should equal the ration of forced probability and natural probability. i.e. w_n(t) = p(t) / Summ(p_i(t)) over all i 
 */
 
-double* precursor_sampling(double k_eff, double beta, double lambda, double t, double t_0) {
+double* precursor_sampling(double k_eff, double* beta_array, double* lambda_array, double t, double t_0) {
+   double beta = 0.0;
+   double P_t = 0.0;
+   for(int i=0; i<NUMBER_OF_PRECURSOR_GROUPS; i++) {
+      beta += beta_array[i];
+      P_t += beta_array[i] * lambda_array[i] * exp(-1.00 * (t - t_0) * lambda_array[i]);
+   }
+   P_t /= beta;
+
    double P_f = k_eff * (1.00 - beta);
    double n_bar = 1.00 / (1.00 - P_f);
    double P_bar = 1.00 / TIME_INTERVAL_FOR_FORCED_DECAY;
-   double P_i = lambda * exp(-1.00 * lambda * (t - t_0));
-   double w_n = P_i / P_bar;
+   double w_n = P_t / P_bar;
 
    double* arr = malloc(5 * sizeof(double));
    arr[0] = P_f;
    arr[1] = n_bar;
    arr[2] = P_bar;
-   arr[3] = P_i;
+   arr[3] = P_t;
    arr[4] = w_n;
 
    return arr;
@@ -65,8 +74,17 @@ double* precursor_sampling(double k_eff, double beta, double lambda, double t, d
 
 */
 
-double precursor_spatial_distribution(double neu, double v, double sigma_f, double beta, double lambda) {
-   return 1.00 / (1 + (beta / lambda) * v * neu * sigma_f);
+double precursor_spatial_distribution(double neu, double v, double sigma_f, double* beta_array, double* lambda_array) {
+   double lambda_b = 0.0;
+   double beta = 0.0;
+   double sum_of_beta_by_lambda = 0.0;
+   for(int i=0; i<NUMBER_OF_PRECURSOR_GROUPS; i++) {
+      beta += beta_array[i];
+      sum_of_beta_by_lambda += beta_array[i] / lambda_array[i];
+   }
+   lambda_b = beta / sum_of_beta_by_lambda;
+
+   return 1.00 / (1 + (beta / lambda_b) * v * neu * sigma_f);
 }
 
 
@@ -81,9 +99,13 @@ double precursor_spatial_distribution(double neu, double v, double sigma_f, doub
 
    -> At a stationary condition, the fraction of precursors per group remains the same, and can be given by 
       C_i0(t) / C_0(t) = (beta_i * lambda ^ b) / (beta * lambda_i)
+
+   -> To achieve this in a Monte Carlo simulation the combined precursor particles should be started with an age between −∞ and 0. This way the ratios between the different precursor groups are correct.
 */
 
+double precursor_time_distribution() {
 
+}
 
 int main(void) {
    printf("%lf\n", TIME_INTERVAL_FOR_FORCED_DECAY);
