@@ -5,18 +5,6 @@
 
 #define TIME_INTERVAL_FOR_FORCED_DECAY 0.1
 
-// -------------------- NOTES -------------------- //
-
-/*
-   -> Assuming all Precursors to be in the same singular Delay Group (i = 1)
-
-
-
-*/
-
-
-
-
 // -------------------- Estimating Precursors -------------------- //
 
 /*
@@ -53,7 +41,13 @@ double* precursor_sampling(double k_eff, double beta, double lambda, double t, d
    double P_i = lambda * exp(-1.00 * lambda * (t - t_0));
    double w_n = P_i / P_bar;
 
-   double arr[] = [P_f, n_bar, P_bar, P_i, w_n];
+   double* arr = malloc(5 * sizeof(double));
+   arr[0] = P_f;
+   arr[1] = n_bar;
+   arr[2] = P_bar;
+   arr[3] = P_i;
+   arr[4] = w_n;
+
    return arr;
 }
 
@@ -65,15 +59,30 @@ double* precursor_sampling(double k_eff, double beta, double lambda, double t, d
    -> When initializing a system, first a criticality calculation is done until the source has converged. This is the steady state neutron distribution and from this distribution the precursor and prompt neutron distribution can be calculated.
 
    -> As we are assumiung all the precursors to be in the same delay group, 
-      C_0(r) = (beta / lambda_b) neu * Sigma_f * phi(x), where lambda_b is the averaged lambda. As we have a singular delay group, lambda_b = lambda
+      C_0(r) = (beta / lambda_b) neu * Sigma_f * phi(x), where lambda_b is the averaged lambda.
 
    -> Therefore, fraction of prompt neutrons at a particular r is given by - 1 / (1 + (beta / lambda) * v * neu * Sigma_f)
 
 */
 
-void precursor_spatial_distribution(double neu, double v, double sigma_f, double beta, double lambda) {
+double precursor_spatial_distribution(double neu, double v, double sigma_f, double beta, double lambda) {
    return 1.00 / (1 + (beta / lambda) * v * neu * sigma_f);
 }
+
+
+// -------------------- Precursors Time Distribution -------------------- //
+
+/*
+
+   -> With exponential decay a particle has no age. There is always the same probability that a particle has its next decay, no matter what time it has lived before. In this case however as stated before a combined precursor particle does not have pure exponential decay.
+
+   -> The importance of a precursor group varies over time, and is given by 
+      C_i(t) / C(t) = ((beta_i / beta) * e ^ (-lambda_i * t)) / [Summation of ((beta_j / beta) * e ^ (-lambda_j * t)) over all j]
+
+   -> At a stationary condition, the fraction of precursors per group remains the same, and can be given by 
+      C_i0(t) / C_0(t) = (beta_i * lambda ^ b) / (beta * lambda_i)
+*/
+
 
 
 int main(void) {
