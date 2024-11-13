@@ -7,6 +7,7 @@
 #define K_eff 0.25
 #define NUMBER_OF_PRECURSOR_GROUPS 10
 #define NUETRON_SPEED 22
+#define NEU 2.5
 
 // -------------------- Estimating Precursors -------------------- //
 
@@ -74,7 +75,7 @@ double* precursor_sampling(double* beta_array, double* lambda_array, double t, d
 
 */
 
-double precursor_spatial_distribution(double neu, double sigma_f, double* beta_array, double* lambda_array) {
+double precursor_spatial_distribution(double sigma_f, double* beta_array, double* lambda_array) {
    double lambda_b = 0.0;
    double beta = 0.0;
    double sum_of_beta_by_lambda = 0.0;
@@ -84,7 +85,7 @@ double precursor_spatial_distribution(double neu, double sigma_f, double* beta_a
    }
    lambda_b = beta / sum_of_beta_by_lambda;
 
-   return 1.00 / (1 + (beta / lambda_b) * NUETRON_SPEED * neu * sigma_f);
+   return 1.00 / (1 + (beta / lambda_b) * NUETRON_SPEED * NEU * sigma_f);
 }
 
 
@@ -154,11 +155,9 @@ double calculation_of_effective_weight(double t_0, double* lambda_array, double*
    -> To ensure that the Monte Carlo method can adapt to its changing environment, the simulation is split in time intervals. The size of these time steps can be chosen freely, but all precursors are forced to have a decay in every time step. If a particle crosses the time boundary of a time step, it is stored for the next time interval.
 
    -> After each time interval the system properties can be adjusted
-
-   ->
 */
 
-void calculate(double simulation_time, double t_0, double* beta_array, double* lambda_array, int* partitions, long long number_of_particles) {
+void calculate(double simulation_time, double t_0, double* beta_array, double* lambda_array, long long* partitions, long long number_of_particles) {
    double beta = 0;
    for(int i=0; i<NUMBER_OF_PRECURSOR_GROUPS; i++) {
       beta += beta_array[i];
@@ -175,7 +174,7 @@ void calculate(double simulation_time, double t_0, double* beta_array, double* l
                double random_number_for_prompt_neutron_generation = ((double)rand()) / RAND_MAX;
                if(random_number_for_decay < decay_probability) initial_neutron_count++;
                if(random_number_for_prompt_neutron_generation < prob_neutron_produces_prompt_neutron) {
-                  partitions[NUMBER_OF_PRECURSOR_GROUPS+1]++;
+                  partitions[NUMBER_OF_PRECURSOR_GROUPS]++;
                   number_of_particles++;   
                }
             } 
@@ -183,6 +182,19 @@ void calculate(double simulation_time, double t_0, double* beta_array, double* l
       }
    }
 }
+
+
+/*
+   0 1 2 | 3 4 5 6 | 7 8 9 | 10 11
+
+   [0 2 6 9 11]
+
+   5
+
+
+   i -> beta[i], lambda[i]
+
+*/
 
 
 int main(void) {
