@@ -155,6 +155,13 @@ double calculation_of_effective_weight(double t_0, double* lambda_array, double*
    -> To ensure that the Monte Carlo method can adapt to its changing environment, the simulation is split in time intervals. The size of these time steps can be chosen freely, but all precursors are forced to have a decay in every time step. If a particle crosses the time boundary of a time step, it is stored for the next time interval.
 
    -> After each time interval the system properties can be adjusted
+
+   -> Paritions are used to divide the Particles into Precursor Groups, 
+      For example, if we have 100 particles, and the partition Array looks like [0, 25, 60, 90, 100], then
+      Particles numbered 1 - 25 will be in Precursor Group 1
+      Particles numbered 26 - 60 will be in Precursor Group 2
+      Particles numbered 61 - 90 will be in Precursor Group 3
+      Particles numbered 91 - 100 will be in Precursor Group 4
 */
 
 void calculate(double simulation_time, double t_0, double* beta_array, double* lambda_array, long long* partitions, long long number_of_particles) {
@@ -196,7 +203,7 @@ int main(void) {
    // srand(time(NULL));
    // double lambda[] = {0.156, 0.498, 0.788, 0.982, 1.421};
    // double beta[] = {0.00012, 0.00056, 0.00016, 0.00029, 0.00086};
-   
+
    // long long partitions[] = {0, 2, 4, 7, 8, 10};
    // calculate(10, 0, beta, lambda, partitions, 10);
    
