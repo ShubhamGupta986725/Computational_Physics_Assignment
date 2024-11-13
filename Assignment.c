@@ -5,7 +5,7 @@
 
 #define TIME_INTERVAL_FOR_FORCED_DECAY 0.1
 #define K_eff 0.25
-#define NUMBER_OF_PRECURSOR_GROUPS 10
+#define NUMBER_OF_PRECURSOR_GROUPS 5
 #define NUETRON_SPEED 22
 #define NEU 2.5
 
@@ -162,28 +162,61 @@ void calculate(double simulation_time, double t_0, double* beta_array, double* l
    for(int i=0; i<NUMBER_OF_PRECURSOR_GROUPS; i++) {
       beta += beta_array[i];
    }
-   int initial_neutron_count = 0;
+   int neutron_count = 0;
    double prob_neutron_produces_prompt_neutron = (1 - beta) * K_eff;
 
-   for(int t=t_0; t<simulation_time; t += TIME_INTERVAL_FOR_FORCED_DECAY) {
-      for(int i=0; i<number_of_particles; i++) {
+
+   FILE* fp = fopen("Neutron.txt",  "w+");
+   double num_of_particles = number_of_particles;
+
+   for(double t=t_0; t<simulation_time; t += TIME_INTERVAL_FOR_FORCED_DECAY) {
+      double temp = num_of_particles - neutron_count;
+      for(int i=0; i<temp; i++) {
          for(int j=0; j<NUMBER_OF_PRECURSOR_GROUPS; j++) {
             if(partitions[j] < i && i <= partitions[j+1]) {
                double decay_probability = lambda_array[j] * exp(-1.00 * lambda_array[j] * (t - t_0));
                double random_number_for_decay = ((double)rand()) / RAND_MAX;
                double random_number_for_prompt_neutron_generation = ((double)rand()) / RAND_MAX;
-               if(random_number_for_decay < decay_probability) initial_neutron_count++;
+               if(random_number_for_decay < decay_probability){ 
+                  neutron_count++;
+               }
                if(random_number_for_prompt_neutron_generation < prob_neutron_produces_prompt_neutron) {
                   partitions[NUMBER_OF_PRECURSOR_GROUPS]++;
-                  number_of_particles++;   
+                  num_of_particles++;   
                }
             } 
          }
       }
+      fprintf(fp, "%lf\t%lf\n", t, num_of_particles);
    }
 }
 
 
 int main(void) {
-   srand(time(NULL));
+   // srand(time(NULL));
+   // double lambda[] = {0.156, 0.498, 0.788, 0.982, 1.421};
+   // double beta[] = {0.00012, 0.00056, 0.00016, 0.00029, 0.00086};
+   
+   // long long partitions[] = {0, 2, 4, 7, 8, 10};
+   // calculate(10, 0, beta, lambda, partitions, 10);
+   
+   // FILE* fp1 = fopen("group1.txt", "w+");
+   // FILE* fp2 = fopen("group2.txt", "w+");
+   // FILE* fp3 = fopen("group3.txt", "w+");
+   // FILE* fp4 = fopen("group4.txt", "w+");
+   // FILE* fp5 = fopen("group5.txt", "w+");
+   
+   // for(double i=0; i<100; i+=0.1) {
+   //    double* arr = precursor_time_distribution_at_time_t(lambda, beta, i, 0);
+   //    fprintf(fp1, "%lf\t%lf\n", i, arr[0]);
+   //    fprintf(fp2, "%lf\t%lf\n", i, arr[1]);
+   //    fprintf(fp3, "%lf\t%lf\n", i, arr[2]);
+   //    fprintf(fp4, "%lf\t%lf\n", i, arr[3]);
+   //    fprintf(fp5, "%lf\t%lf\n", i, arr[4]);
+   // }
+   // fclose(fp1);
+   // fclose(fp2);
+   // fclose(fp3);
+   // fclose(fp4);
+   // fclose(fp5);
 }
